@@ -3,6 +3,9 @@ __pycache__/
 *.py[codz]
 *$py.class
 
+# Secrets
+session.txt
+
 # C extensions
 *.so
 
