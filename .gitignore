@@ -3,8 +3,10 @@ __pycache__/
 *.py[codz]
 *$py.class
 
+# Tchap
 # Secrets
 session.txt
+store/
 
 # C extensions
 *.so
