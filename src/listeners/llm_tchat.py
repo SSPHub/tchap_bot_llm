@@ -31,10 +31,14 @@ def get_model_name():
     return model_name
 
 
+def format_msg(message: str):
+    return [{"role": "user", "content": message}]
+
+
 def ask(question: str):
     response = openai_client.chat.completions.create(
         model=get_model_name(),
-        messages=question,
+        messages=format_msg(question),
     )
 
     answer = response.choices[0].message.content
