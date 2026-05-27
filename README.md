@@ -4,7 +4,10 @@
 
 replies with time when message starts with coucou
 
-## Url react
+## Url react - disabled for now
+
+When you send an url, the bot replies with a tick mark.
+The script is more an example and disabled for now.
 
 ## Send request to LLM lab
 
