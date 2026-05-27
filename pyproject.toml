@@ -6,5 +6,6 @@ readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
     "matrix-nio[e2e]>=0.25.2",
+    "openai>=2.38.0",
     "simplematrixbotlib>=2.13.1",
 ]
