@@ -11,7 +11,7 @@ def register(bot: botlib.Bot, prefix: str) -> None:
 
         if match.is_not_from_this_bot() and match.prefix() and match.command("llm"):
             response_llm = ask(match.event.body)
-            await bot.api.send_text_message(
+            await bot.api.send_markdown_message(
                 room_id=room.room_id,
                 message=response_llm,
                 reply_to=match.event.event_id,
@@ -32,7 +32,14 @@ def get_model_name():
 
 
 def format_msg(message: str):
-    return [{"role": "user", "content": message}]
+    msg_formatted = [
+        {
+            "role": "system",
+            "content": "Respond with  markdown formatting. Do not use escape characters.",
+        },
+        {"role": "user", "content": message},
+    ]
+    return msg_formatted
 
 
 def ask(question: str):
