@@ -1,5 +1,8 @@
 # Bot tchap - features
 
+Will load all `register` functions listed in all .py files of the listeners folder.
+To deactivate a module, just update the name from `def register` to `def no_register` for example.
+
 ## Echo
 
 replies with time when message starts with coucou
