@@ -97,20 +97,20 @@ def register(bot: botlib.Bot, prefix: str) -> None:
             prompt = await generate_prompt(bot, room.room_id, match=match)
             first = prefix + command
             prompt = clean_prompt(prompt, first)
-            # response_llm = ask(prompt=prompt)
-            # await bot.api.send_markdown_message(
-            #     room_id=room.room_id,
-            #     message=response_llm,
-            #     reply_to=match.event.event_id,
-            # )
-
-            # Debug
-            response_llm = "\n\n".join(str(d) for d in prompt)
-            await bot.api.send_text_message(
+            response_llm = ask(prompt=prompt)
+            await bot.api.send_markdown_message(
                 room_id=room.room_id,
                 message=response_llm,
                 reply_to=match.event.event_id,
             )
+
+            # Debug
+            # response_llm = "\n\n".join(str(d) for d in prompt)
+            # await bot.api.send_text_message(
+            #     room_id=room.room_id,
+            #     message=response_llm,
+            #     reply_to=match.event.event_id,
+            # )
 
 
 async def generate_prompt(bot: botlib.Bot, room_id: str, match):
