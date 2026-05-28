@@ -13,7 +13,7 @@ openai_client = OpenAI(
 
 
 def history_append(
-    history: list = [],
+    history: list | None = None,
     role: str = "user",
     content: str = "",
     at_first_pos: bool = True,
@@ -26,6 +26,9 @@ def history_append(
         - content: str : the content of the message
         - at_first_pos: boolean : append at first position (top) or at the end
     """
+    if history is None:
+        history = []
+
     if at_first_pos:
         return [{"role": role, "content": content}] + history
     else:
@@ -97,6 +100,7 @@ def register(bot: botlib.Bot, prefix: str) -> None:
             prompt = await generate_prompt(bot, room.room_id, match=match)
             first = prefix + command
             prompt = clean_prompt(prompt, first)
+            # Prod mode
             response_llm = ask(prompt=prompt)
             await bot.api.send_markdown_message(
                 room_id=room.room_id,
@@ -104,7 +108,7 @@ def register(bot: botlib.Bot, prefix: str) -> None:
                 reply_to=match.event.event_id,
             )
 
-            # Debug
+            # Debug mode
             # response_llm = "\n\n".join(str(d) for d in prompt)
             # await bot.api.send_text_message(
             #     room_id=room.room_id,
@@ -144,15 +148,15 @@ def clean_prompt(prompt: list, pattern_start: str):
     Removes characters at the beginning of a prompt that match the pattern
     """
     n_pattern = len(pattern_start)
-    cleaned_prompt = prompt
-    for chat in cleaned_prompt:
-        if chat["content"][:n_pattern] == pattern_start:
-            chat["content"] = chat["content"][n_pattern + 1 :]
+    return [
+        {**chat, "content": chat["content"][n_pattern + 1 :]}
+        if chat["content"].startswith(pattern_start)
+        else chat
+        for chat in prompt
+    ]
 
-    return cleaned_prompt
 
-
-async def retrieve_history(bot: botlib.Bot, room_id: str, reply_event_id: str):
+async def retrieve_history(bot: botlib.Bot, room_id: str, reply_event_id: str) -> list:
     """
     Retrieves full history of chat in this discussion between the LLM and the user.
     History is defined by message being sent in reply to a message
@@ -163,6 +167,9 @@ async def retrieve_history(bot: botlib.Bot, room_id: str, reply_event_id: str):
     """
 
     event = await get_event(bot, room_id, reply_event_id)
+    if event is None:
+        return []
+
     sender, body, reply_id_level2 = extract_info(event)
     role = get_role_event(event=event, bot=bot)
 
