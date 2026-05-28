@@ -12,21 +12,33 @@ openai_client = OpenAI(
 )
 
 
-def history_append_top(history: list = [], role: str = "user", content: str = ""):
+def history_append(
+    history: list = [],
+    role: str = "user",
+    content: str = "",
+    at_first_pos: bool = True,
+):
     """
     Function to add a message to history with role and content
     Args:
         - history: list : the history to append the message to
         - role: str : the role to give to the message
         - content: str : the content of the message
+        - at_first_pos: boolean : append at first position (top) or at the end
     """
-    history_appended_top = [{"role": role, "content": content}] + history
-
-    return history_appended_top
+    if at_first_pos:
+        return [{"role": role, "content": content}] + history
+    else:
+        return history + [{"role": role, "content": content}]
 
 
 def get_in_reply_to_event_id(event):
-    return event.get("content").get("m.relates_to").get("m.in_reply_to").get("event_id")
+    return (
+        event.source.get("content", {})
+        .get("m.relates_to", {})
+        .get("m.in_reply_to", {})
+        .get("event_id", "")
+    )
 
 
 def get_role_event(event, bot):
@@ -56,12 +68,11 @@ def get_model_name():
 
 
 def add_system_prompt(history: list):
-    history_with_system_prompt = (
-        history_append_top(
-            history=history,
-            role="system",
-            content="Respond with  markdown formatting. Do not use escape characters.",
-        ),
+    history_with_system_prompt = history_append(
+        history=history,
+        role="system",
+        content="Respond with  markdown formatting. Do not use escape characters.",
+        at_first_pos=True,
     )
 
     return history_with_system_prompt
@@ -81,67 +92,98 @@ def register(bot: botlib.Bot, prefix: str) -> None:
     @bot.listener.on_message_event
     async def tchat_with_llm(room, message):
         match = botlib.MessageMatch(room, message, bot, prefix)
+        command = "llm"
+        if match.is_not_from_this_bot() and match.prefix() and match.command(command):
+            prompt = await generate_prompt(bot, room.room_id, match=match)
+            first = prefix + command
+            prompt = clean_prompt(prompt, first)
+            # response_llm = ask(prompt=prompt)
+            # await bot.api.send_markdown_message(
+            #     room_id=room.room_id,
+            #     message=response_llm,
+            #     reply_to=match.event.event_id,
+            # )
 
-        if match.is_not_from_this_bot() and match.prefix() and match.command("llm"):
-            prompt = generate_prompt(bot, room.room_id, match=match)
-            response_llm = ask(prompt=prompt)
-
-            await bot.api.send_markdown_message(
+            # Debug
+            response_llm = "\n\n".join(str(d) for d in prompt)
+            await bot.api.send_text_message(
                 room_id=room.room_id,
                 message=response_llm,
                 reply_to=match.event.event_id,
             )
 
-    async def generate_prompt(bot: botlib.Bot, room_id: str, match):
-        """
-        Function to generate the full prompt from an event id
-        Arg:
-            - bot: botlib.Bot
-            - room_id: str : the Matrix room id where the message is
-            - match: a simplebot match
-        Returns:
-            - a list with history, from oldest to newest
-        """
-        history = history_append_top(history=[], role="user", content=match.event.body)
 
-        reply_id = get_in_reply_to_event_id(match.event)
+async def generate_prompt(bot: botlib.Bot, room_id: str, match):
+    """
+    Function to generate the full prompt from an event id
+    Arg:
+        - bot: botlib.Bot
+        - room_id: str : the Matrix room id where the message is
+        - match: a simplebot match
+    Returns:
+        - a list with history, from oldest to newest
+    """
+    history = history_append(
+        history=[], role="user", content=match.event.body, at_first_pos=True
+    )
 
-        if reply_id != "":
-            history = retrieve_history(bot, room_id, reply_event_id=reply_id) + history
+    reply_id = get_in_reply_to_event_id(match.event)
 
-        prompt = add_system_prompt(history)
+    if reply_id != "":
+        history = (
+            await retrieve_history(bot, room_id, reply_event_id=reply_id) + history
+        )
 
-        return prompt
+    prompt = add_system_prompt(history)
 
-    async def retrieve_history(bot: botlib.Bot, room_id: str, reply_event_id: str):
-        """
-        Retrieves full history of chat in this discussion between the LLM and the user.
-        History is defined by message being sent in reply to a message
-        Args :
-        - bot : the botlib bot. Used to fetch back other message
-        - room_id : the room to search for past message
-        - reply_event_id: the id of the message replied to
-        """
+    return prompt
 
-        event = get_event(bot, room_id, reply_event_id)
-        sender, body, reply_id_level2 = extract_info(event)
-        role = get_role_event(event=event, bot=bot)
 
-        if reply_id_level2 != "":
-            history = retrieve_history(bot, room_id, reply_id_level2)
-            return history_append_top(history=history, role=role, content=body)
-        else:
-            return history_append_top(history=[], role=role, content=body)
+def clean_prompt(prompt: list, pattern_start: str):
+    """
+    Removes characters at the beginning of a prompt that match the pattern
+    """
+    n_pattern = len(pattern_start)
+    cleaned_prompt = prompt
+    for chat in cleaned_prompt:
+        if chat["content"][:n_pattern] == pattern_start:
+            chat["content"] = chat["content"][n_pattern + 1 :]
 
-    async def get_event(bot: botlib.Bot, room_id: str, event_id: str):
-        """
-        Fetches an event by ID and returns it.
-        Returns None if the event could not be fetched.
-        """
-        response = await bot.async_client.room_get_event(room_id, event_id)
+    return cleaned_prompt
 
-        if isinstance(response, nio.RoomGetEventError):
-            print(f"  ✘ Could not fetch event {event_id}: {response.message}")
-            return None
 
-        return response.event
+async def retrieve_history(bot: botlib.Bot, room_id: str, reply_event_id: str):
+    """
+    Retrieves full history of chat in this discussion between the LLM and the user.
+    History is defined by message being sent in reply to a message
+    Args :
+    - bot : the botlib bot. Used to fetch back other message
+    - room_id : the room to search for past message
+    - reply_event_id: the id of the message replied to
+    """
+
+    event = await get_event(bot, room_id, reply_event_id)
+    sender, body, reply_id_level2 = extract_info(event)
+    role = get_role_event(event=event, bot=bot)
+
+    if reply_id_level2 != "":
+        history = await retrieve_history(bot, room_id, reply_id_level2)
+        return history_append(
+            history=history, role=role, content=body, at_first_pos=False
+        )
+    else:
+        return history_append(history=[], role=role, content=body, at_first_pos=True)
+
+
+async def get_event(bot: botlib.Bot, room_id: str, event_id: str):
+    """
+    Fetches an event by ID and returns it.
+    Returns None if the event could not be fetched.
+    """
+    response = await bot.async_client.room_get_event(room_id, event_id)
+
+    if isinstance(response, nio.RoomGetEventError):
+        print(f"  ✘ Could not fetch event {event_id}: {response.message}")
+        return None
+
+    return response.event
