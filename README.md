@@ -15,6 +15,7 @@ The script is more an example and disabled for now.
 ## Send request to LLM lab
 
 send your message to LLM when starting with `!llm`
+If you reply to the answer, (still starting with !llm), it will remember past exchanges to the same messages.
 
 # How to
 
