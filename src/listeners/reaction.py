@@ -11,8 +11,8 @@ def register(bot: botlib.Bot, prefix: str) -> None:
                 room_id=room.room_id, event=message, key=example_reaction
             )
 
-            await bot.api.send_text_message(
-                room_id=room.room_id,
-                message=f"I reacted to your message {match.event.body}",
-                reply_to=match.event.event_id,
-            )
+            # await bot.api.send_text_message(
+            #     room_id=room.room_id,
+            #     message=f"I reacted to your message {match.event.body}",
+            #     reply_to=match.event.event_id,
+            # )
