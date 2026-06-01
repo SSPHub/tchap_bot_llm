@@ -5,6 +5,11 @@ COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 
 WORKDIR /app
 
+# Build deps for python-olm (libolm is compiled from source)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+build-essential cmake \
+&& rm -rf /var/lib/apt/lists/*
+
 # Install project dependencies
 COPY pyproject.toml .
 RUN uv sync
