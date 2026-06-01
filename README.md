@@ -3,6 +3,10 @@
 Will load all `register` functions listed in all .py files of the listeners folder.
 To deactivate a module, just update the name from `def register` to `def no_register` for example.
 
+# Docker
+
+Every push to the repo triggers the release of a new docker image
+
 ## Echo
 
 replies with time when message starts with coucou
@@ -30,10 +34,22 @@ If you reply to the answer, (still starting with !llm), it will remember past ex
 - homeserver of Tchap to "https://matrix.agent.finances.tchap.gouv.fr",
 - url of llmlab : "https://llm.lab.sspcloud.fr/api"
 
-## run it
+## run it locally
 
 just run `uv run main.py`.
 
 ## add a function
 
 Add a listener script in the src/listeners folder
+
+## Deploy it
+
+- have Kubernetes admin role
+- have as env var :
+  - DOCKERHUB_USERNAME : DOCKER HUB account to pull the image from
+  - SSP_USERNAME : your username from SSPCloud account
+- run it with
+
+```{bash}
+sed "s/\${DOCKERHUB_USERNAME}/$DOCKERHUB_USERNAME/g; s/\${SSP_USERNAME}/$SSP_USERNAME/g" k8s/deployment.yaml | kubectl apply -f -
+```
