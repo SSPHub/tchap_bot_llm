@@ -1,0 +1,63 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tchap-bot
+  namespace: user-${SSP_USERNAME}
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: tchap-bot
+  template:
+    metadata:
+      labels:
+        app: tchap-bot
+    spec:
+      containers:
+        - name: tchap-bot
+          image: ${DOCKERHUB_USERNAME}/tchap-bot:latest
+          imagePullPolicy: Always
+          env:
+            - name: TCHAP_BOT_SSPHUB_MATRIX_ID
+              valueFrom:
+                secretKeyRef:
+                  name: tchap-bot-secrets
+                  key: TCHAP_BOT_SSPHUB_MATRIX_ID
+            - name: TCHAP_BOT_SSPHUB_PWD
+              valueFrom:
+                secretKeyRef:
+                  name: tchap-bot-secrets
+                  key: TCHAP_BOT_SSPHUB_PWD
+            - name: LLM_LAB_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: tchap-bot-secrets
+                  key: LLM_LAB_API_KEY
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "500m"
+          volumeMounts:
+            - name: bot-data
+              mountPath: /app/session
+      volumes:
+        - name: bot-data
+          persistentVolumeClaim:
+            claimName: tchap-bot-pvc
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: tchap-bot-pvc
+  namespace: user-${SSP_USERNAME}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
