@@ -27,7 +27,7 @@ tchap_bot_test/
 │   │
 │   └── listeners/           # ── Couche fonctionnalités (une par fichier) ──
 │       ├── __init__.py      # load_all() : charge auto. tous les modules avec register()
-│       ├── echo.py          # !coucou → renvoie l'heure (la fonctionnalité de test)
+│       ├── echo.py          # coucou → renvoie l'heure (la fonctionnalité de test)
 │       ├── llm_tchat.py     # !llm → interroge le LLM + reconstitue l'historique
 │       └── reaction.py      # réaction à un mot-clé (la fonctionnalité "mystère")
 │
