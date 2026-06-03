@@ -1,5 +1,4 @@
-# 3.13-slim has vulnerabilities according to Docker
-FROM python:3.13-alpine
+FROM python:3.13-slim
 
 # Install uv
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
@@ -7,13 +6,9 @@ COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 WORKDIR /app
 
 # Build deps for python-olm (libolm is compiled from source)
-RUN apk add --no-cache \
-    build-base \
-    cmake \
-    gcc \
-    musl-dev \
-    libffi-dev \
-    openssl-dev
+RUN apt-get update && apt-get install -y --no-install-recommends \
+build-essential cmake \
+&& rm -rf /var/lib/apt/lists/*
 
 # Install project dependencies
 COPY pyproject.toml .
