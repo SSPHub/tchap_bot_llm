@@ -1,4 +1,4 @@
-FROM python:3.13-slim
+FROM python:3.13-alpine  # 3.13-slim has vulnerabilities according to Docker
 
 # Install uv
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
