@@ -9,7 +9,9 @@ def register(bot: botlib.Bot, prefix: str) -> None:
     async def echo(room, message):
         match = botlib.MessageMatch(room, message, bot, prefix)
 
-        if match.is_not_from_this_bot() and match.command("coucou"):
+        if match.is_not_from_this_bot() and (
+            match.command("coucou") or match.command("Coucou")
+        ):
             await bot.api.send_text_message(
                 room.room_id,
                 "Coucou, il est "
