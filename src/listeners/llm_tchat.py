@@ -109,12 +109,15 @@ def register(bot: botlib.Bot, prefix: str) -> None:
             )
 
             # Debug mode
-            # response_llm = "\n\n".join(str(d) for d in prompt)
-            # await bot.api.send_text_message(
-            #     room_id=room.room_id,
-            #     message=response_llm,
-            #     reply_to=match.event.event_id,
-            # )
+            if match.contains("see prompt"):
+                prompt_llm = "Voici le prompt envoyé au LLM:\n\n" + "\n\n".join(
+                    str(d) for d in prompt
+                )
+                await bot.api.send_text_message(
+                    room_id=room.room_id,
+                    message=prompt_llm,
+                    reply_to=match.event.event_id,
+                )
 
 
 async def generate_prompt(bot: botlib.Bot, room_id: str, match):
