@@ -1,6 +1,8 @@
 import os
 from dataclasses import dataclass
 
+DATA_DIR = "session"
+
 
 @dataclass(frozen=True)
 class Creds:
@@ -15,6 +17,7 @@ class BotConfig:
     emoji_verify: bool
     ignore_unverified_devices: bool
     encryption_enabled: bool
+    store_path: str
 
 
 @dataclass(frozen=True)
@@ -32,13 +35,16 @@ def load_creds() -> Creds:
         homeserver="https://matrix.agent.finances.tchap.gouv.fr",
         username=os.environ["TCHAP_BOT_SSPHUB_MATRIX_ID"],
         password=os.environ["TCHAP_BOT_SSPHUB_PWD"],
-        session_stored_file="session/session.txt",  # cf k8s manifest
+        session_stored_file=os.path.join(DATA_DIR, "session.txt"),
     )
 
 
 def load_config() -> BotConfig:
     return BotConfig(
-        emoji_verify=True, ignore_unverified_devices=True, encryption_enabled=True
+        emoji_verify=True,
+        ignore_unverified_devices=True,
+        encryption_enabled=True,
+        store_path=os.path.join(DATA_DIR, "store"),
     )
 
 
