@@ -32,7 +32,7 @@ def load_creds() -> Creds:
         homeserver="https://matrix.agent.finances.tchap.gouv.fr",
         username=os.environ["TCHAP_BOT_SSPHUB_MATRIX_ID"],
         password=os.environ["TCHAP_BOT_SSPHUB_PWD"],
-        session_stored_file="session/session.txt",  # specified in the k8s manifest
+        session_stored_file="session/session.txt",  # cf k8s manifest
     )
 
 
