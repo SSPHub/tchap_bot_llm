@@ -4,8 +4,9 @@ Will load all `register` functions listed in all .py files of the listeners fold
 To deactivate a module, just update the name from `def register` to `def no_register` for example.
 
 # Repo structure
+
 ```
-tchap_bot_test/
+tchap_bot_llm/
 │
 ├── main.py                  # Point d'entrée : appelle src.run("!")
 ├── pyproject.toml           # Dépendances (matrix-nio[e2e], openai, simplematrixbotlib)
@@ -48,7 +49,7 @@ tchap_bot_test/
     │   └── deploy.yaml       # GitHub Action : build + push de l'image à chaque commit
     └── dependabot.yml        # Mises à jour automatiques des actions GitHub
 ```
- 
+
 # Docker
 
 Every push to the repo triggers the release of a new docker image
