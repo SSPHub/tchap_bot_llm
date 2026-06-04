@@ -100,13 +100,6 @@ def register(bot: botlib.Bot, prefix: str) -> None:
             prompt = await generate_prompt(bot, room.room_id, match=match)
             first = prefix + command
             prompt = clean_prompt(prompt, first)
-            # Prod mode
-            response_llm = ask(prompt=prompt)
-            await bot.api.send_markdown_message(
-                room_id=room.room_id,
-                message=response_llm,
-                reply_to=match.event.event_id,
-            )
 
             # Debug mode
             if match.contains("see prompt"):
@@ -118,6 +111,14 @@ def register(bot: botlib.Bot, prefix: str) -> None:
                     message=prompt_llm,
                     reply_to=match.event.event_id,
                 )
+
+            # Prod mode
+            response_llm = ask(prompt=prompt)
+            await bot.api.send_markdown_message(
+                room_id=room.room_id,
+                message=response_llm,
+                reply_to=match.event.event_id,
+            )
 
 
 async def generate_prompt(bot: botlib.Bot, room_id: str, match):
